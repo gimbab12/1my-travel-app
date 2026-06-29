@@ -155,7 +155,6 @@ export default function App() {
             alt="Travel Background" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
-            crossOrigin="anonymous"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/80 via-rose-900/20 to-neutral-50/0"></div>
         </div>
