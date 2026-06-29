@@ -154,6 +154,8 @@ export default function App() {
             src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2073&auto=format&fit=crop" 
             alt="Travel Background" 
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/80 via-rose-900/20 to-neutral-50/0"></div>
         </div>
