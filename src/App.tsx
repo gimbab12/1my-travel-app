@@ -1,15 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plane, Compass, Sparkles, LogIn, LogOut, Loader2, MapPin, MessageSquare, Star, Globe } from 'lucide-react';
-import { auth, db } from './lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { Plane, Compass, Sparkles, Loader2, MapPin, MessageSquare, Star, Globe } from 'lucide-react';
+import { db } from './lib/firebase';
 import { collection, addDoc, query, onSnapshot, orderBy } from 'firebase/firestore';
 import ReactMarkdown from 'react-markdown';
 import { TravelProfile, Review, Language } from './types';
 import { translations } from './i18n';
 
+// AdSense Banner Component
+const AdBanner = () => {
+  useEffect(() => {
+    try {
+      // @ts-ignore
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      console.error("AdSense error", e);
+    }
+  }, []);
+
+  return (
+    <div className="w-full overflow-hidden flex justify-center my-8 bg-neutral-100 rounded-2xl p-4">
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block', minWidth: '300px', width: '100%', height: '100px' }}
+        data-ad-client="ca-pub-8139972839007359"
+        data-ad-slot="auto"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      ></ins>
+    </div>
+  );
+};
+
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
   const [lang, setLang] = useState<Language>('ko');
   const t = translations[lang];
 
@@ -27,13 +50,9 @@ export default function App() {
   const [recommendation, setRecommendation] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [newReview, setNewReview] = useState({ destination: '', comment: '', rating: 5 });
+  const [newReview, setNewReview] = useState({ userName: '', destination: '', comment: '', rating: 5 });
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-
     const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
     const unsubscribeReviews = onSnapshot(q, (snapshot) => {
       const revs: Review[] = [];
@@ -44,7 +63,6 @@ export default function App() {
     });
 
     return () => {
-      unsubscribeAuth();
       unsubscribeReviews();
     };
   }, []);
@@ -53,19 +71,6 @@ export default function App() {
     const newLang = e.target.value as Language;
     setLang(newLang);
     setProfile(prev => ({ ...prev, language: newLang }));
-  };
-
-  const handleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Error signing in:", error);
-    }
-  };
-
-  const handleSignOut = () => {
-    signOut(auth);
   };
 
   const submitProfile = async (e: React.FormEvent) => {
@@ -95,22 +100,21 @@ export default function App() {
 
   const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return alert("Please sign in to leave a review.");
     if (!newReview.destination || !newReview.comment) return alert("Please fill all fields.");
 
     try {
       await addDoc(collection(db, 'reviews'), {
-        userId: user.uid,
-        userName: user.displayName || 'Anonymous',
+        userId: 'anonymous',
+        userName: newReview.userName.trim() || 'Anonymous',
         destination: newReview.destination,
         rating: newReview.rating,
         comment: newReview.comment,
         createdAt: Date.now()
       });
-      setNewReview({ destination: '', comment: '', rating: 5 });
+      setNewReview({ userName: '', destination: '', comment: '', rating: 5 });
     } catch (error) {
       console.error("Error adding review:", error);
-      alert("Failed to add review. Make sure you are signed in.");
+      alert("Failed to add review.");
     }
   };
 
@@ -139,29 +143,6 @@ export default function App() {
                 <option value="de" className="text-black">Deutsch</option>
               </select>
             </div>
-
-            {user ? (
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-white hidden sm:inline-block drop-shadow-md">
-                  {user.displayName}
-                </span>
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20 rounded-full transition-colors backdrop-blur-sm border border-white/20"
-                >
-                  <LogOut className="w-4 h-4" />
-                  {t.signOut}
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleSignIn}
-                className="flex items-center gap-2 px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-full transition-colors shadow-sm"
-              >
-                <LogIn className="w-4 h-4" />
-                {t.signIn}
-              </button>
-            )}
           </div>
         </div>
       </header>
@@ -269,6 +250,10 @@ export default function App() {
                     <option value="quiet">{t.quiet}</option>
                     <option value="neutral">{t.neutral}</option>
                     <option value="crowded">{t.crowded}</option>
+                    <option value="historical">{t.historical}</option>
+                    <option value="modern">{t.modern}</option>
+                    <option value="nature">{t.nature}</option>
+                    <option value="artistic">{t.artistic}</option>
                   </select>
                 </div>
 
@@ -282,6 +267,9 @@ export default function App() {
                     <option value="cheap">{t.cheap}</option>
                     <option value="balanced">{t.balanced}</option>
                     <option value="expensive">{t.expensive}</option>
+                    <option value="flex">{t.flex}</option>
+                    <option value="shopping">{t.shopping}</option>
+                    <option value="foodie">{t.foodie}</option>
                   </select>
                 </div>
 
@@ -324,7 +312,9 @@ export default function App() {
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto px-4 pb-24 space-y-16 -mt-8 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 pb-24 space-y-16 -mt-8 relative z-10">
+        <AdBanner />
+        
         <AnimatePresence>
           {recommendation && (
             <motion.section
@@ -338,15 +328,17 @@ export default function App() {
                 </div>
                 <h2 className="text-3xl font-bold tracking-tight font-display text-neutral-900">{t.customItinerary}</h2>
               </div>
-              <div className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-h2:text-2xl prose-a:text-rose-600 hover:prose-a:text-rose-500 prose-img:rounded-2xl prose-img:shadow-lg prose-img:w-full prose-img:max-h-[400px] prose-img:object-cover prose-img:my-8">
+              <div className="markdown-body prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-h2:text-2xl prose-a:text-rose-600 hover:prose-a:text-rose-500 prose-img:rounded-2xl prose-img:shadow-lg prose-img:w-full prose-img:max-h-[400px] prose-img:object-cover prose-img:my-8">
                 <ReactMarkdown>{recommendation}</ReactMarkdown>
               </div>
             </motion.section>
           )}
         </AnimatePresence>
 
+        <AdBanner />
+
         <section className="bg-white rounded-3xl shadow-lg border border-neutral-100 p-8 md:p-12">
-          <div className="flex items-center gap-4 mb-10 pb-6 border-b border-neutral-100">
+          <div className="flex items-center gap-4 mb-10 pb-6 border-b border-white-100">
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
               <MessageSquare className="w-6 h-6" />
             </div>
@@ -357,19 +349,28 @@ export default function App() {
             <div className="lg:col-span-1">
               <div className="bg-neutral-50 rounded-2xl p-6 border border-neutral-200 sticky top-24">
                 <h3 className="font-bold text-lg text-neutral-900 mb-6">{t.shareExperience}</h3>
-                {user ? (
-                  <form onSubmit={submitReview} className="space-y-5">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-neutral-700">{t.destination}</label>
-                      <input
-                        type="text"
-                        placeholder={t.destinationPlaceholder}
-                        value={newReview.destination}
-                        onChange={e => setNewReview({ ...newReview, destination: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-rose-500 outline-none bg-white transition-shadow"
-                        required
-                      />
-                    </div>
+                <form onSubmit={submitReview} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-neutral-700">이름 / Name</label>
+                    <input
+                      type="text"
+                      placeholder="익명 / Anonymous"
+                      value={newReview.userName}
+                      onChange={e => setNewReview({ ...newReview, userName: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-rose-500 outline-none bg-white transition-shadow"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-neutral-700">{t.destination}</label>
+                    <input
+                      type="text"
+                      placeholder={t.destinationPlaceholder}
+                      value={newReview.destination}
+                      onChange={e => setNewReview({ ...newReview, destination: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-rose-500 outline-none bg-white transition-shadow"
+                      required
+                    />
+                  </div>
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-neutral-700">{t.rating}</label>
                       <div className="flex gap-2">
@@ -403,20 +404,6 @@ export default function App() {
                       {t.postReview}
                     </button>
                   </form>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <LogIn className="w-8 h-8 text-rose-500" />
-                    </div>
-                    <p className="text-sm text-neutral-500 mb-6">{t.signInToReview}</p>
-                    <button
-                      onClick={handleSignIn}
-                      className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-full transition-colors shadow-md"
-                    >
-                      {t.signIn}
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
 

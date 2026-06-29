@@ -1,26 +1,20 @@
 import express from "express";
-import path from "path";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+
+const app = express();
+app.use(express.json());
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+app.post("/api/recommend", async (req: express.Request, res: express.Response) => {
+  try {
+    const { age, gender, mbti, preferredRegion, crowdPreference, budgetPreference, totalBudget, transportation, language } = req.body;
 
-  app.use(express.json());
+    if (age === '' || age === undefined || !gender || !preferredRegion || !crowdPreference || !budgetPreference || totalBudget === '' || totalBudget === undefined || !transportation || !language) {
+      return res.status(400).json({ error: "Missing required fields." });
+    }
 
-  // API Route for Gemini Recommendations
-  app.post("/api/recommend", async (req, res) => {
-    try {
-      const { age, gender, mbti, preferredRegion, crowdPreference, budgetPreference, totalBudget, transportation, language } = req.body;
-
-      if (age === '' || age === undefined || !gender || !preferredRegion || !crowdPreference || !budgetPreference || totalBudget === '' || totalBudget === undefined || !transportation || !language) {
-        return res.status(400).json({ error: "Missing required fields." });
-      }
-
-      const prompt = `You are an expert AI travel navigator. 
+    const prompt = `You are an expert AI travel navigator. 
 A user wants travel recommendations based on the following profile:
 - Age: ${age}
 - Gender: ${gender}
@@ -49,36 +43,16 @@ CRITICAL INSTRUCTION: You MUST output the ENTIRE response in the following langu
 Output the response in clean Markdown format. Be specific and realistic regarding costs.
 `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-      });
-
-      res.json({ recommendation: response.text });
-    } catch (error) {
-      console.error("Gemini API Error:", error);
-      res.status(500).json({ error: "Failed to generate recommendations." });
-    }
-  });
-
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
     });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+
+    res.json({ recommendation: response.text });
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    res.status(500).json({ error: "Failed to generate recommendations." });
   }
+});
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
-
-startServer();
+export default app;

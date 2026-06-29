@@ -36,7 +36,7 @@ export default function FoodReviews({ foodId, lang = 'ko' }: FoodReviewsProps) {
           rating: data.rating,
           comment: data.comment,
           createdAt: data.createdAt?.toMillis() || Date.now(),
-        });
+        } as any);
       });
       setReviews(fetchedReviews);
     }, (error) => {
@@ -50,11 +50,11 @@ export default function FoodReviews({ foodId, lang = 'ko' }: FoodReviewsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth.currentUser) {
-      alert(lang === 'ko' ? '로그인 후 이용해주세요.' : 'Please log in to use this feature.');
+      alert(lang === 'ko' ? '로그인 후 이용해 주세요.' : 'Please log in to use this feature.');
       return;
     }
     if (!newComment.trim()) {
-      alert(lang === 'ko' ? '리뷰 내용을 입력해주세요.' : 'Please enter your review.');
+      alert(lang === 'ko' ? '리뷰 내용을 입력해 주세요.' : 'Please enter your review.');
       return;
     }
 

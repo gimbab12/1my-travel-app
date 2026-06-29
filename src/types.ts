@@ -5,8 +5,8 @@ export interface TravelProfile {
   gender: 'male' | 'female' | 'other' | '';
   mbti: string;
   preferredRegion: string;
-  crowdPreference: 'crowded' | 'quiet' | 'neutral';
-  budgetPreference: 'expensive' | 'cheap' | 'balanced';
+  crowdPreference: 'crowded' | 'quiet' | 'neutral' | 'historical' | 'modern' | 'nature' | 'artistic';
+  budgetPreference: 'expensive' | 'cheap' | 'balanced' | 'flex' | 'shopping' | 'foodie';
   totalBudget: number | '';
   transportation: 'bus' | 'walking' | 'subway' | 'train' | '';
   language: Language;
