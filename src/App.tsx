@@ -23,6 +23,7 @@ import FoodTab from './components/FoodTab';
 import AuthTab from './components/AuthTab';
 import AdSenseAd from './components/AdSenseAd';
 import AppInstallModal from './components/AppInstallModal';
+import { KakaoAdFit } from './components/KakaoAdFit';
 
 // AdSense Banner Component inside the App (Styled as a native-look mobile card ad)
 const AdBanner = () => {
@@ -932,6 +933,11 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Kakao AdFit Bottom Banner */}
+      <div className="w-full shrink-0 bg-neutral-50 border-t border-neutral-100 flex justify-center py-1 z-40">
+        <KakaoAdFit />
+      </div>
 
       {/* Sticky Bottom Navigation Tab Bar (iOS style) */}
       <nav className="h-[62px] bg-white border-t border-neutral-100 flex justify-around items-center px-1 shrink-0 z-40 select-none">
